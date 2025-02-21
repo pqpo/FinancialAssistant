@@ -1,0 +1,5 @@
+akshare~=1.16.5
+streamlit~=1.41.1
+agno
+altair~=5.0.1
+pandas~=1.5.3
