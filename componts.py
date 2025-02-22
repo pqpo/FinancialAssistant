@@ -42,23 +42,16 @@ def show_finance_news():
 
 
 def show_news(data_frame: pd.DataFrame):
-    today_str = datetime.datetime.now().strftime('%Y-%m-%d')
     for index, row in data_frame.iterrows():
-        pub_time = row['pub_time'].strftime('%Y-%m-%d')
-        if st.session_state.show_today:
-            if pub_time != today_str:
-                continue
         with st.container():
-            # 使用columns布局
-            col_left, col_right = st.columns([4, 1])
-            with col_left:
-                st.markdown(f"### {row['title']}")
-                st.markdown(f"{row['content']}")
-                # 显示链接（如果有）
-                if row['url'] and pd.notnull(row['url']):
-                    st.markdown(f"[阅读原文]({row['url']})", unsafe_allow_html=True)
-            with col_right:
-                st.markdown(f"<div style='text-align: right; color: #666;'>{pub_time}</div>",
+            st.markdown(f"### {row['title']}")
+            st.markdown(f"{row['content']}")
+            left, middle, right = st.columns(3)
+            with left:
+                st.markdown(f"<div style='text-align: left; color: #666;'>{row['source']}（{row['category']}）</div>",
+                            unsafe_allow_html=True)
+            with right:
+                st.markdown(f"<div style='text-align: right; color: #666;'>{row['pub_time']}</div>",
                             unsafe_allow_html=True)
             # 分隔线
             st.markdown("---")

@@ -12,7 +12,8 @@ def get_cctv_news(date_str: str):
     cctv_news.rename(columns={"date": "pub_time"}, inplace=True)
     cctv_news['url'] = ''
     cctv_news['category'] = 'cctv'
-    return cctv_news[['category', 'pub_time', 'title', 'content', 'url']]
+    cctv_news['source'] = 'CCTV'
+    return cctv_news[['source', 'category', 'pub_time', 'title', 'content', 'url']]
 
 
 # 黄金新闻
@@ -31,7 +32,8 @@ def get_gold_news(date_str: str):
     gold_news = gold_news[gold_news['content'].str.strip().astype(bool)]
     gold_news['url'] = ''
     gold_news['category'] = 'gold'
-    return gold_news[gold_news['pub_time'] == date_str][['category', 'pub_time', 'title', 'content', 'url']]
+    gold_news['source'] = '上海金属网'
+    return gold_news[gold_news['pub_time'] == date_str][['source', 'category', 'pub_time', 'title', 'content', 'url']]
 
 
 # 财经新闻
@@ -50,9 +52,10 @@ def get_stock_news_main_cx(date_str: str) -> pd.DataFrame:
     temp_df["pub_time"] = pd.to_datetime(
         temp_df["pub_time"], errors="coerce", unit="ms"
     ).dt.strftime('%Y%m%d')
-    temp_df['category'] = 'stock'
     temp_df.rename(columns={'tag': 'title', 'summary': 'content'}, inplace=True)
-    return temp_df[temp_df['pub_time'] == date_str][['category', 'pub_time', 'title', 'content', 'url']]
+    temp_df['category'] = 'stock'
+    temp_df['source'] = '财新网'
+    return temp_df[temp_df['pub_time'] == date_str][['source', 'category', 'pub_time', 'title', 'content', 'url']]
 
 
 def fetch(category: str, date_str: str):
@@ -71,7 +74,8 @@ def fetch(category: str, date_str: str):
 
 
 if __name__ == "__main__":
-    date = datetime.now().strftime('%Y%m%d')
+    # date = datetime.now().strftime('%Y%m%d')
+    date = '20250221'
     for c in ['cctv', 'gold', 'stock']:
         try:
             fetch(c, date)
