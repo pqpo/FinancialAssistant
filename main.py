@@ -2,7 +2,7 @@ import json
 import os
 import streamlit as st
 import componts
-from datetime import datetime
+from datetime import datetime, timedelta
 import service
 
 default_prompt = f"""
@@ -79,7 +79,7 @@ with middle:
         index=0
     )
 with right:
-    st.session_state.selectDate = st.date_input("日期", datetime.now()).strftime("%Y%m%d")
+    st.session_state.selectDate = st.date_input("日期", datetime.now() - timedelta(days=1)).strftime("%Y%m%d")
 
 date_str = st.session_state.selectDate
 category = st.session_state.category
