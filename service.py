@@ -68,7 +68,7 @@ def generate_response(input_text: str,
             {"role": "assistant", "content": "好呀，请你提供一些相关的新闻，这样我就能按照要求进行分析啦。"},
             {"role": "user", "content": f"新闻数据如下，开始完成你的任务：{input_text}"},
         ],
-        temperature=0.6,
+        temperature=0.5,
         stream=True
     )
     thinking = False
