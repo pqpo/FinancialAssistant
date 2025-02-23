@@ -34,8 +34,12 @@ with st.sidebar:
     mode_name = st.text_input("Model Name", os.environ.get("OPENAI_MODEL_NAME"))
     investment_prompt = st.text_area("Prompt", prompt.investment_prompt, height=300)
 
-with st.expander("沪深300&市场情绪指数", expanded=False, icon="🔥"):
+with st.expander("沪深300&市场情绪指数", expanded=False, icon="📈"):
     componts.show_index_news_sentiment_scope_chat()
+with st.expander("恒生指数", expanded=False, icon="📈"):
+    componts.show_heng_shen_chat()
+# with st.expander("恒生科技指数", expanded=False, icon="📈"):
+#     componts.show_hang_seng_tech_index_chat()
 
 left, middle, right = st.columns(3)
 with left:
@@ -54,7 +58,7 @@ date_str = st.session_state.selectDate
 category = st.session_state.category
 news_list = service.load_news(date_str, str(category).lower())
 news_len = sum(len(df) for df in news_list) if news_list is not None else 0
-with st.container(border=True, height=600):
+with st.container(border=True, height=700):
     if news_list is None:
         st.error(f'暂无数据：{date_str}, {category}')
     else:
@@ -96,30 +100,34 @@ def get_news_input_text():
     return json.dumps(input_list, ensure_ascii=False)
 
 
-if st.button("📰 新闻摘要", use_container_width=True):
-    check_llm_input()
-    summary_input_text = get_news_input_text()
-    if not summary_input_text:
-        st.error("暂未查询到新闻数据!!!")
-        st.stop()
-    input_text = json.dumps(summary_input_text, ensure_ascii=False)
-    response = service.generate_response(input_text, prompt.summary_prompt, api_key, base_url, mode_name)
-    with st.status("正在提取摘要...") as status:
-        st.write_stream(response)
-        status.update(
-            label="提取完成", state="complete", expanded=True
-        )
+buttonLeft, buttonRight = st.columns(2)
 
-submitted = st.button("🚀 新闻分析", use_container_width=True)
-if submitted:
-    check_llm_input()
-    analysis_input_text =  get_news_input_text()
-    if not analysis_input_text:
-        st.error("暂未查询到新闻数据!!!")
-        st.stop()
-    response = service.generate_response(analysis_input_text, investment_prompt, api_key, base_url, mode_name)
-    with st.status("正在分析...") as status:
-        st.write_stream(response)
-        status.update(
-            label="分析完成", state="complete", expanded=True
-        )
+with buttonLeft:
+    if st.button("📰 新闻摘要", use_container_width=True):
+        check_llm_input()
+        summary_input_text = get_news_input_text()
+        if not summary_input_text:
+            st.error("暂未查询到新闻数据!!!")
+            st.stop()
+        input_text = json.dumps(summary_input_text, ensure_ascii=False)
+        response = service.generate_response(input_text, prompt.summary_prompt, api_key, base_url, mode_name)
+        with st.status("正在提取摘要...") as status:
+            st.write_stream(response)
+            status.update(
+                label="提取完成", state="complete", expanded=True
+            )
+
+with buttonRight:
+    submitted = st.button("🚀 新闻分析", use_container_width=True)
+    if submitted:
+        check_llm_input()
+        analysis_input_text = get_news_input_text()
+        if not analysis_input_text:
+            st.error("暂未查询到新闻数据!!!")
+            st.stop()
+        response = service.generate_response(analysis_input_text, investment_prompt, api_key, base_url, mode_name)
+        with st.status("正在分析...") as status:
+            st.write_stream(response)
+            status.update(
+                label="分析完成", state="complete", expanded=True
+            )

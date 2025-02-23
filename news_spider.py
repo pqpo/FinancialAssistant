@@ -44,7 +44,6 @@ def get_gold_news():
 def get_index_news_sentiment_scope():
     print("load index_news_sentiment_scope data!")
     news_sentiment_scope = ak.index_news_sentiment_scope()
-    news_sentiment_scope.set_index("日期", inplace=True)
     return news_sentiment_scope
 
 
@@ -71,6 +70,28 @@ def get_stock_news_main_cx() -> pd.DataFrame:
     return temp_df.to_json()
 
 
+@st.cache_data(ttl='0.5d')
+def hang_seng_index() -> pd.DataFrame:
+    print("load hang_seng_index data!")
+    url = "https://www.hsi.com.hk/data/eng/indexes/00001.00/chart.json"
+    data_json = make_request_with_retry_json(url, params={})
+    temp_df = pd.DataFrame(data_json["indexLevels-1y"], columns=['date', 'hs_index'])
+    temp_df['date'] = pd.to_datetime(temp_df['date'], unit='ms')
+    temp_df['date'] = temp_df['date'].dt.tz_localize('UTC').dt.tz_convert('Asia/Shanghai')
+    return temp_df
+
+
+@st.cache_data(ttl='0.5d')
+def hang_seng_tech_index() -> pd.DataFrame:
+    print("load hang_seng_tech_index data!")
+    url = "https://www.hsi.com.hk/data/eng/indexes/02083.00/chart.json"
+    data_json = make_request_with_retry_json(url, params={})
+    temp_df = pd.DataFrame(data_json["indexLevels-1y"], columns=['date', 'hs_index'])
+    temp_df['date'] = pd.to_datetime(temp_df['date'], unit='ms')
+    temp_df['date'] = temp_df['date'].dt.tz_localize('UTC').dt.tz_convert('Asia/Shanghai')
+    return temp_df
+
+
 if __name__ == "__main__":
-    news = get_gold_news()
+    news = hang_seng_index()
     print(news)
