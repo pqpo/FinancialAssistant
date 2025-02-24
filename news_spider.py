@@ -71,11 +71,30 @@ def get_stock_news_main_cx() -> pd.DataFrame:
 
 
 @st.cache_data(ttl='0.5d')
+def nasdaq_index() -> pd.DataFrame:
+    print("load nasdaq_index data!")
+    url = "https://api.investing.com/api/financialdata/14958/historical/chart/?interval=P1W&pointscount=160"
+    data_json = make_request_with_retry_json(url, params={}, headers={
+        ":authority":"api.investing.com",
+        "accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "accept-encoding":"gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"
+    })
+    temp_df = pd.DataFrame(data_json["data"])
+    temp_df = temp_df[[0, -3]]
+    temp_df.columns = ['date', 'stock_index']
+    temp_df['date'] = pd.to_datetime(temp_df['date'], unit='ms')
+    temp_df['date'] = temp_df['date'].dt.tz_localize('UTC').dt.tz_convert('Asia/Shanghai')
+    return temp_df
+
+
+@st.cache_data(ttl='0.5d')
 def hang_seng_index() -> pd.DataFrame:
     print("load hang_seng_index data!")
     url = "https://www.hsi.com.hk/data/eng/indexes/00001.00/chart.json"
     data_json = make_request_with_retry_json(url, params={})
-    temp_df = pd.DataFrame(data_json["indexLevels-1y"], columns=['date', 'hs_index'])
+    temp_df = pd.DataFrame(data_json["indexLevels-1y"], columns=['date', 'stock_index'])
     temp_df['date'] = pd.to_datetime(temp_df['date'], unit='ms')
     temp_df['date'] = temp_df['date'].dt.tz_localize('UTC').dt.tz_convert('Asia/Shanghai')
     return temp_df
@@ -86,7 +105,7 @@ def hang_seng_tech_index() -> pd.DataFrame:
     print("load hang_seng_tech_index data!")
     url = "https://www.hsi.com.hk/data/eng/indexes/02083.00/chart.json"
     data_json = make_request_with_retry_json(url, params={})
-    temp_df = pd.DataFrame(data_json["indexLevels-1y"], columns=['date', 'hs_index'])
+    temp_df = pd.DataFrame(data_json["indexLevels-1y"], columns=['date', 'stock_index'])
     temp_df['date'] = pd.to_datetime(temp_df['date'], unit='ms')
     temp_df['date'] = temp_df['date'].dt.tz_localize('UTC').dt.tz_convert('Asia/Shanghai')
     return temp_df

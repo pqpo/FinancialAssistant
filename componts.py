@@ -36,11 +36,21 @@ def show_hang_seng_tech_index_chat():
     st.altair_chart(layer_chart, use_container_width=True)
 
 
-def show_heng_shen_chat():
+def show_nasdaq_index_chat(show_days: int):
+    nasdaq_index_data = ns.nasdaq_index()
+    show_stock_index_chat("纳斯达克指数", [14000, 28000], nasdaq_index_data, show_days)
+
+
+def show_heng_shen_chat(show_days: int):
     hang_seng_index_data = ns.hang_seng_index()
-    chart = alt.Chart(hang_seng_index_data).mark_line(color="red", strokeWidth=3).encode(
+    show_stock_index_chat("恒生指数", [14000, 28000], hang_seng_index_data, show_days)
+
+
+def show_stock_index_chat(name: str, scale: list[int], index_data: pd.DataFrame, show_days: int):
+    index_data = index_data.iloc[-show_days:] if len(index_data) >= show_days else index_data
+    chart = alt.Chart(index_data).mark_line(color="red", strokeWidth=3).encode(
         x=alt.X('date:T', axis=alt.Axis(title="日期", format='%Y-%m-%d')),
-        y=alt.Y('hs_index:Q', axis=alt.Axis(title="恒生指数"), scale=alt.Scale(domain=[14000, 28000]))
+        y=alt.Y('stock_index:Q', axis=alt.Axis(title=name), scale=alt.Scale(domain=scale))
     )
     # 创建选择器（用于捕捉最近点）
     nearest = alt.selection_point(
@@ -56,10 +66,10 @@ def show_heng_shen_chat():
     )
     # 显示工具提示（tooltip）
     tooltips = chart.mark_rule(color="gray").encode(
-        y="hs_index:Q",
+        y="stock_index:Q",
         tooltip=[
             alt.Tooltip("date:T", title="日期"),
-            alt.Tooltip("hs_index:Q", title="恒生指数"),
+            alt.Tooltip("stock_index:Q", title=name),
         ]
     ).transform_filter(
         nearest  # 只显示最近点的数据
@@ -68,8 +78,10 @@ def show_heng_shen_chat():
     st.altair_chart(layer_chart, use_container_width=True)
 
 
-def show_index_news_sentiment_scope_chat():
+def show_index_news_sentiment_scope_chat(show_days: int):
     news_sentiment_scope = ns.get_index_news_sentiment_scope()
+    news_sentiment_scope = news_sentiment_scope.iloc[-show_days:] if len(
+        news_sentiment_scope) >= show_days else news_sentiment_scope
     # 使用 Altair 绘制双纵坐标轴图表
     base = alt.Chart(news_sentiment_scope).encode(
         x=alt.X('日期:T', axis=alt.Axis(format='%Y-%m-%d')),
@@ -112,7 +124,7 @@ def show_index_news_sentiment_scope_chat():
     # )
 
     # 将两条折线图组合在一起
-    chart = alt.layer(line1, line2,).resolve_scale(
+    chart = alt.layer(line1, line2, ).resolve_scale(
         y="independent"  # 设置独立的纵坐标轴
     )
     # 显示图表
