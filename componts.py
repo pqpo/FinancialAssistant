@@ -1,3 +1,5 @@
+import time
+
 import streamlit as st
 import news_spider as ns
 import altair as alt

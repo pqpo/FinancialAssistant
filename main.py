@@ -32,16 +32,8 @@ if not auth_check_pass:
 
 st.set_page_config(layout="wide")
 
-with st.sidebar:
-    st.header("📢 每日新闻")
-    st.caption("🚀 使用大模型总结新闻要点")
-    api_key = st.text_input("Api Key", os.environ.get("OPENAI_API_KEY"), type="password")
-    base_url = st.text_input("Base Url", os.environ.get("OPENAI_BASE_URL"))
-    mode_name = st.selectbox(
-        "Model Name",
-        ("doubao-pro", "doubao-lite", "deepseek-r1", "deepseek-v3", "qwen-max-latest", "qwen-plus-latest"),
-    )
-    investment_prompt = st.text_area("Prompt", prompt.investment_prompt, height=300)
+api_key = os.environ.get("OPENAI_API_KEY")
+base_url = os.environ.get("OPENAI_BASE_URL")
 
 
 def get_news_len(news_list: list[pd.DataFrame] | None):
@@ -49,17 +41,10 @@ def get_news_len(news_list: list[pd.DataFrame] | None):
 
 
 @st.fragment
-def show_news_container():
-    with st.expander(f"新闻内容", expanded=True, icon="📢"):
-        row_title = st.columns(2)
-        with row_title[0]:
-            category = st.selectbox(
-                "类型",
-                ("All", "Stock", "CCTV", "Gold"),
-                index=0
-            )
-        with row_title[1]:
-            date_str = st.date_input("日期", datetime.now() - timedelta(days=1)).strftime("%Y%m%d")
+def show_news_container(container, category):
+    print("refresh news")
+    date_str = st.date_input("日期", datetime.now() - timedelta(days=1)).strftime("%Y%m%d")
+    with container.container():
         news_list = service.load_news(date_str, str(category).lower())
         print(str(category).lower())
         news_len = get_news_len(news_list)
@@ -74,26 +59,17 @@ def show_news_container():
 
 
 @st.fragment
-def show_global_stock_index():
-    with st.expander(f"全球指数", expanded=True, icon="📈"):
-        with st.container():
-            show_type = st.selectbox(
-                "类型",
-                ("60d", "160d", "365d"),
-                index=0
-            )
-            show_days_number = int(show_type.replace('d', ''))
-            index_tabs = st.tabs(["沪深300", "恒生指数"])
-            with index_tabs[0]:
-                componts.show_index_news_sentiment_scope_chat(show_days_number)
-            with index_tabs[1]:
-                componts.show_heng_shen_chat(show_days_number)
-            # with index_tabs[2]:
-            #     componts.show_nasdaq_index_chat(show_days_number)
-
-
-show_global_stock_index()
-show_news_container()
+def show_global_stock_index(i_container, s_type):
+    print("refresh stock index")
+    with i_container.container():
+        show_days_number = int(s_type.replace('d', ''))
+        index_tabs = st.tabs(["沪深300", "恒生指数"])
+        with index_tabs[0]:
+            componts.show_index_news_sentiment_scope_chat(show_days_number)
+        with index_tabs[1]:
+            componts.show_heng_shen_chat(show_days_number)
+        # with index_tabs[2]:
+        #     componts.show_nasdaq_index_chat(show_days_number)
 
 
 def check_llm_input():
@@ -129,6 +105,32 @@ def get_news_input_text():
     return json.dumps(input_list, ensure_ascii=False)
 
 
+with st.expander(f"全球指数", expanded=False, icon="📈"):
+    show_type = st.selectbox(
+        "类型",
+        ("30d", "90d", "160d", "365d"),
+        index=0
+    )
+    index_container = st.container(border=False)
+
+with st.expander(f"新闻内容", expanded=True, icon="📢"):
+    s_category = st.selectbox(
+        "类型",
+        ("All", "Stock", "CCTV", "Gold"),
+        index=0
+    )
+    news_container = st.container(border=False)
+
+with st.sidebar:
+    st.header("📢 每日新闻")
+    st.caption("🚀 使用大模型总结新闻要点")
+    show_news_container(news_container.empty(), s_category)
+    mode_name = st.selectbox(
+        "Model Name",
+        ("doubao-pro", "doubao-lite", "deepseek-r1", "deepseek-v3", "qwen-max-latest", "qwen-plus-latest"),
+    )
+    investment_prompt = st.text_area("Prompt", prompt.investment_prompt, height=300)
+
 buttonLeft, buttonRight = st.columns(2)
 response = None
 error_message = None
@@ -161,3 +163,6 @@ if response is not None:
         )
 elif error_message is not None:
     st.error(error_message)
+
+# 比较耗时，放在最后加载
+show_global_stock_index(index_container, show_type)
