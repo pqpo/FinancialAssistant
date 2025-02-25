@@ -52,7 +52,7 @@ def show_news_container(container, category):
         if news_len == 0:
             st.warning(f'暂无数据, 类型:{category}, 时间:{date_str}')
         else:
-            with st.container(border=False, height=700):
+            with st.container(border=False, height=800):
                 st.info(f'条数:{news_len}, 类型:{category}, 时间:{date_str}')
                 for item in news_list:
                     componts.show_news(item)
@@ -82,7 +82,7 @@ def check_llm_input():
         error_msg = "请输入 Base Url!!!"
     if not mode_name:
         error_msg = "请输入 Model Name!!!"
-    if not investment_prompt:
+    if not real_prompt:
         error_msg = "请输入 Prompt!!!"
     return error_msg
 
@@ -121,6 +121,9 @@ with st.expander(f"新闻内容", expanded=True, icon="📢"):
     )
     news_container = st.container(border=False)
 
+response = None
+error_message = None
+
 with st.sidebar:
     st.header("📢 每日新闻")
     st.caption("🚀 使用大模型总结新闻要点")
@@ -129,31 +132,25 @@ with st.sidebar:
         "Model Name",
         ("doubao-pro", "doubao-lite", "deepseek-r1", "deepseek-v3", "qwen-max-latest", "qwen-plus-latest"),
     )
-    investment_prompt = st.text_area("Prompt", prompt.investment_prompt, height=300)
-
-buttonLeft, buttonRight = st.columns(2)
-response = None
-error_message = None
-
-with buttonLeft:
-    if st.button("📰 新闻摘要", use_container_width=True):
-        if (error_message := check_llm_input()) is None:
-            summary_input_text = get_news_input_text()
-            if not summary_input_text:
-                error_message = "暂未查询到新闻数据!"
-            else:
-                input_text = json.dumps(summary_input_text, ensure_ascii=False)
-                response = service.generate_response(input_text, prompt.summary_prompt, api_key, base_url, mode_name)
-
-with buttonRight:
+    prompt_type = st.selectbox(
+        "Preset",
+        ("提取摘要", "财经分析", "自定义"),
+    )
+    selected_prompt = ""
+    if prompt_type == "提取摘要":
+        selected_prompt = prompt.summary_prompt
+    elif prompt_type == "财经分析":
+        selected_prompt = prompt.investment_prompt
+    real_prompt = st.text_area("Prompt", selected_prompt, height=300)
     if st.button("🚀 新闻分析", use_container_width=True):
         if (error_message := check_llm_input()) is None:
             analysis_input_text = get_news_input_text()
             if not analysis_input_text:
                 error_message = "暂未查询到新闻数据!"
             else:
-                response = service.generate_response(analysis_input_text, investment_prompt, api_key, base_url,
+                response = service.generate_response(analysis_input_text, real_prompt, api_key, base_url,
                                                      mode_name)
+
 
 if response is not None:
     with st.status("正在分析...") as status:
